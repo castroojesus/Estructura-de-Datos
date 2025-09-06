@@ -18,9 +18,9 @@ public class Filas {
         System.out.println("Los elementos del array bidimensional son: ");
          for(int x=0;x<r;x++){
             for(int y=0;y<c;y++){
-                System.out.println(TwoDArray[x][y]+" ");
+                System.out.print(TwoDArray[x][y]+" ");
             }
-            
+            System.out.println();
         }
 
         System.out.println("\nLos elementos del array unidimensional son: ");
@@ -34,3 +34,4 @@ public class Filas {
     }
     
 }
+
