@@ -1,29 +1,20 @@
-const r=3;
-const c=3;
-let arr=new Array[r*c].fill(0);
 let TwoDArray=[[1,2,3],[4,5,6],[7,8,9]];
-let k=0;
 
-for(let x=0;x<r;x++){
-    for(let y=0;y<c;y++){
-        k=x*r+y;
-        arr[k]=TwoDArray[x][y];
-        k=k+1;
-    }
-}
+
+
 console.log("Los elementos del array bidimensional son: ");
-for(let x=0;x<r;x++){
+for(let x=0;x<TwoDArray.length;x++){
     let fila =" ";
-    for(let y=0;y<c;y++){
+    for(let y=0;y<TwoDArray.length;y++){
         fila+=TwoDArray[x][y]+ " ";
     }
     console.log(fila);
 }
-console.log("\nLos elementos del array bidimensional son: ");
-for(let x=0;x<r;x++){
+console.log("\nLos elementos del array unidimensional son: ");
+for(let x=0;x<TwoDArray.length;x++){
     let resultado =" ";
-    for(let y=0;y<c;y++){
-        resultado+=arr[x*r+y]+ " ";
+    for(let y=0;y<TwoDArray.length;y++){
+        resultado+=TwoDArray[x][y]+ " ";
     }
-    console.log(resultado);
+console.log(resultado);
 }
