@@ -1,18 +1,16 @@
-r=3;c=3
-arr=[0]*r*c
 TwoDArr=[[1,2,3],[4,5,6],[7,8,9]];
-k=0
-for x in range(r):
-    for y in range(c):
-        k=x*r+y;
-        arr[k]=TwoDArr[x][y]
-        k=k+1
+
+
 print("Los elementos del array bidimensional son: ")
 for row in TwoDArr:
     for ele in row:
         print(ele,end=" ")
     print()
+
+filas=len(TwoDArr)
+columnas=len(TwoDArr[0])
+
 print("\nLos elementos del array unidimensional son: ")
-for x in range(r):
-    for y in range(c):
-        print((arr[x*r+y]),end=" ")
+for x in range(filas):
+    for y in range(columnas):
+        print((TwoDArr[x][y]),end=" ")
