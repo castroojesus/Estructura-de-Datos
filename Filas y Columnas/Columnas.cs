@@ -6,19 +6,11 @@ class Program
     {
         int r = 3;
         int c = 3;
-        int[] arr = new int[r * c];
+        
         int[,] TwoDArray = new int[,] { { 1, 2, 3 }, { 4, 5, 6 }, { 7, 8, 9 } };
-        int k = 0;
+        
 
-        for (int y = 0; y < c; y++)
-        {
-            for (int x = 0; x < r; x++)
-            {
-                k = y * r + x;
-                arr[k] = TwoDArray[x,y];
-                k = k + 1;
-            }
-        }
+       
 
         Console.WriteLine("Los elementos del array bidimensional son: ");
         for (int x = 0; x < r; x++)
@@ -36,7 +28,7 @@ class Program
         {
             for (int x = 0; x < r; x++)
             {
-                Console.Write(arr[y*r+x]+" " );
+                Console.Write(TwoDArray[x,y]+" " );
             }
             
         }
