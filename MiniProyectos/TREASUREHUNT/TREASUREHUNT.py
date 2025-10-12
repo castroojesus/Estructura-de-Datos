@@ -1,13 +1,39 @@
 import pygame
 import constantes
 from personajes import Personaje
+from maze import GeneradorLaberinto
 
-jugador=Personaje(50,50)
+
+
+
+
+
 
 pygame.init()
+generador = GeneradorLaberinto(constantes.tileSize, 20)
 
 
-ventana = pygame.display.set_mode((constantes.screenWidth , constantes.screenHeight))
+def scaleimage(image, scale):
+    w = image.get_width()
+    h = image.get_height()
+    newimage = pygame.transform.scale(image, (w*scale, h*scale))
+    return newimage
+
+player_image=pygame.image.load("player/pj_1.png")
+player_image= scaleimage(player_image,constantes.ESCALA)
+start_pos = generador.obtener_posicion_inicio()
+
+
+jugador_x = start_pos[1] * generador.cell_size  # Columna * tamaño_celda
+jugador_y = start_pos[0] * generador.cell_size  # Fila * tamaño_celda
+jugador = Personaje(jugador_x, jugador_y, player_image)
+
+# Generar laberinto completo
+generador.generar_completo()
+
+
+
+ventana = pygame.display.set_mode(generador.obtener_dimensiones())
 pygame.display.set_caption("TREASURE HUNT")
 
 
@@ -24,6 +50,7 @@ while run:
     reloj.tick(constantes.FPS)
 
     ventana.fill(constantes.BackgroundColor)
+    generador.dibujar_laberinto(ventana)
 
     deltax=0
     delta_y=0
@@ -40,8 +67,11 @@ while run:
 
 
     jugador.movement(deltax, delta_y)
+    
 
     jugador.dibujar(ventana)
+
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             run = False

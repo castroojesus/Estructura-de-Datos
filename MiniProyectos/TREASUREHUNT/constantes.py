@@ -4,10 +4,11 @@ scale=2
 tileSize=OriginalTileSize*scale
 
 #constantes del personaje
-characterWidth=tileSize
-characterHeight=tileSize
+characterWidth=OriginalTileSize/scale
+characterHeight=OriginalTileSize/scale
 PlayerColor=(255,255,0)
 FPS=60
+ESCALA=1.25
 
 #constantes de pantalla
 
