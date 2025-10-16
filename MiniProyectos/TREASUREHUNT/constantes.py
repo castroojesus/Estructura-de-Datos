@@ -6,13 +6,14 @@ tileSize=OriginalTileSize*scale
 #constantes del personaje
 characterWidth=OriginalTileSize/scale
 characterHeight=OriginalTileSize/scale
-PlayerColor=(255,255,0)
 FPS=60
-ESCALA=1.25
+ESCALA=1.2
+RADIO_LUZ = 1
+NEGRO = (0, 0, 0)
+GRIS = (66,66,66)
+BEIGE = (245, 245, 220)
 
 #constantes de pantalla
-
-BackgroundColor = (135, 206, 235)
 maxScreenCol=20
 maxScreenRow=20
 screenWidth=tileSize*maxScreenCol
