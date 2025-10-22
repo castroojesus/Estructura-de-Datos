@@ -8,10 +8,18 @@ characterWidth=OriginalTileSize/scale
 characterHeight=OriginalTileSize/scale
 FPS=60
 ESCALA=1.2
-RADIO_LUZ = 1
-NEGRO = (0, 0, 0)
-GRIS = (66,66,66)
-BEIGE = (245, 245, 220)
+
+
+COLORES_LABERINTO = {
+    'PARED': (0, 0, 0),  # Negro
+    'CAMINO': (255, 255, 255),  # Blanco
+    'INICIO': (0, 255, 0),  # Verde
+    'FIN': (255, 0, 0),  # Rojo
+    'TRAMPA':(255,127,80),
+
+
+    'LLAVE':(0,255,255)
+}
 
 #constantes de pantalla
 maxScreenCol=20

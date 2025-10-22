@@ -1,53 +1,18 @@
 # PRIMERA REVISION 14/10/25
 
 import pygame
-import constantes
-from personajes import Personaje
+import constantes as const
+from personaje import Personaje
 from maze import MazeGenerator
-from items import GeneradorTrampas
-from Iluminacion import SistemaIluminacion
-from exploracion import MapaExploracion
-from items import GeneradorTesoros
-
-def verificar_salida(jugador_x, jugador_y, salida_pos, tile_size):
-    """Verifica si el jugador llegó a la salida con tolerancia"""
-    # Convertirtodo a coordenadas de celdas
-    jugador_celda_x = jugador_x // tile_size
-    jugador_celda_y = jugador_y // tile_size
-
-    # Salida está en formato (fila, columna), convertir a (columna, fila)
-    salida_celda_x = salida_pos[1]  # columna
-    salida_celda_y = salida_pos[0]  # fila
-
-    # Verificar coincidencia
-    en_salida = (jugador_celda_x == salida_celda_x and jugador_celda_y == salida_celda_y)
-
-    if en_salida:
-        print(
-            f"✅ ¡Salida encontrada! Jugador: ({jugador_celda_x}, {jugador_celda_y}), Salida: ({salida_celda_x}, {salida_celda_y})")
-
-    return en_salida
+from game_manager import GameManager
+import json
+import time
+from rankings import guardar_ranking,mostrar_rankings,pedir_nombre
 
 pygame.init()
-# asigno mi clase a la variable generador
-generador = MazeGenerator(20, 20)
-celdas_visitadas = []
-
-sistema_iluminacion = SistemaIluminacion(20, 20, constantes.tileSize)
-# variable para obtener la posicion de la salida
-salida=generador.get_exit_pos()
-
-# entrada del laberinto
-entrada=generador.get_entry_pos()
-
-celdas_visitadas.append(entrada)
-mapa_exploracion=MapaExploracion(20,20,constantes.tileSize)
-# variable que hereda de la clase de trampas
-trampas = GeneradorTrampas.crear_trampas(generador.get_maze(), 5,entrada, salida)
-tesoros=GeneradorTesoros.crear_tesoros(generador.get_maze(), 5, entrada, salida)
-
-
-# funcion para escalar mi sprite al tamaño de la figura
+inicio=time.time()
+manager=GameManager()
+partida_guardada=False
 def scaleimage(image, scale):
     w = image.get_width()
     h = image.get_height()
@@ -55,14 +20,15 @@ def scaleimage(image, scale):
     return newimage
 
 def loadimage():
-    # Cargar imágenes para cada dirección
-    imagen_abajo = pygame.image.load("player/pj_abajo.png")
-    imagen_arriba = pygame.image.load("player/pj_arriba.png")
-    imagen_izquierda = pygame.image.load("player/pj_izquierda.png")
-    imagen_derecha = pygame.image.load("player/pj_derecha.png")
 
-    # Escalar imágenes
-    escala = constantes.ESCALA
+    imagen_abajo = pygame.image.load("player/pj _abajo-1.png.png")
+    imagen_arriba = pygame.image.load("player/pj_arriba-1.png.png")
+    imagen_izquierda = pygame.image.load("player/pj_izquierda-1.png.png")
+    imagen_derecha = pygame.image.load("player/pj_derecha-1.png.png")
+
+
+
+    escala = const.ESCALA
     imagenes = {
         'abajo': scaleimage(imagen_abajo, escala),
         'arriba': scaleimage(imagen_arriba, escala),
@@ -73,33 +39,81 @@ def loadimage():
 
     return imagenes
 
-#caargo la imagen de mi jugador
-player_image= loadimage()
+respuesta = input("¿Quieres cargar una partida guardada? (s/n): ").lower()
 
-#asigno la varibale de posicion inicial
-start_pos = generador.get_entry_pos()
+if respuesta == "s":
 
-#coordenadas x, y para el personaje
-jugador_x = start_pos[1] * constantes.tileSize  # Columna → X
-jugador_y = start_pos[0] * constantes.tileSize  # Fila → Y
+    try:
+        with open("savegame.json", "r") as f:
+            datos = json.load(f)
+            print("Partida cargada exitosamente 🎮")
 
-# declaro mi personaje con las coordenadas y la imagen
-jugador = Personaje(jugador_x, jugador_y, player_image)
+            generador = MazeGenerator(20, 20)
+            generador.maze=datos["laberinto"]
+            entrada = generador.get_entry_pos()
+            salida = generador.get_exit_pos()
 
-COLORES_LABERINTO = {
-    'PARED': (0, 0, 0),  # Negro
-    'CAMINO': (255, 255, 255),  # Blanco
-    'INICIO': (0, 255, 0),  # Verde
-    'FIN': (255, 0, 0)  # Rojo
-}
+            jugador_x = entrada[1] * const.tileSize
+            jugador_y = entrada[0] * const.tileSize
+            jugador = Personaje(jugador_x, jugador_y, loadimage())
 
-mapa_exploracion.marcar_pisada(entrada[0], entrada[1])
+            jugador.puntos = datos["puntos"]
+            jugador.vidaactual = datos["vidas"]
+            jugador.energia = datos["energia"]
+            jugador.inventario.llaves = datos["llaves"]
+            jugador.inventario.items = datos["items"]
+            contador_salida = datos["nivel"]
+            for t, d in zip(generador.trampas, datos.get("trampas", [])):
+                t.x, t.y, t.activada = d
+
+            for t, d in zip(generador.tesoros, datos.get("tesoros", [])):
+                t.x, t.y, t.recolectado, t.nombre = d
+
+            for l, d in zip(generador.llave, datos.get("llaves_obj", [])):
+                l.x, l.y, l.encontrada = d
+
+            partida_guardada = True
+
+    except FileNotFoundError:
+        print("No hay partida guardada, iniciando nueva 😅")
+        generador = MazeGenerator(20, 20)
+else:
+    generador = MazeGenerator(20, 20)
+
+if not partida_guardada or contador_salida>=3:
+    generador = MazeGenerator(20,20)
+    entrada = generador.get_entry_pos()
+    salida = generador.get_exit_pos()
+
+    jugador_x = entrada[1] * const.tileSize
+    jugador_y = entrada[0] * const.tileSize
+    jugador = Personaje(jugador_x, jugador_y, loadimage())
+
+    contador_salida = 0
+
+def verificar_salida(jugador, salida_pos, tileSize):
+
+    celda_x = jugador.shape.x // tileSize
+    celda_y = jugador.shape.y // tileSize
+
+    if (celda_x, celda_y) == (salida_pos[1], salida_pos[0]):
+        if jugador.llaves > 0:
+
+            return True
+        else:
+            print("🔒 Necesitas una llave para salir")
+            return False
+    return False
+
+
 # creo la ventana que va a ser del tamaño que asigne en constantes
-ventana = pygame.display.set_mode((constantes.screenWidth, constantes.screenHeight))
+ventana = pygame.display.set_mode((const.screenWidth, const.screenHeight))
+
+
+
 
 # titulo de la ventana
 pygame.display.set_caption("TREASURE HUNT")
-
 
 moveUp = False
 moveDown = False
@@ -109,112 +123,130 @@ moveRight = False
 
 
 reloj=pygame.time.Clock()
-run=True
+mostrar_inventario=False
 
-
+run = True
 while run:
 
-    reloj.tick(constantes.FPS)
+    fullheart = pygame.image.load("player/fullheart.png")
+    voidheart = pygame.image.load("player/voidheart.png")
+    fullheart = pygame.transform.scale(fullheart, (const.tileSize, const.tileSize))
+    voidheart = pygame.transform.scale(voidheart, (const.tileSize, const.tileSize))
 
-    
-    
+    fullenergy = pygame.image.load("player/fullenergy.png")
+    voidenergy = pygame.image.load("player/voidenergy.png")
+    fullenergy = pygame.transform.scale(fullenergy, (const.tileSize, const.tileSize))
+    voidenergy = pygame.transform.scale(voidenergy, (const.tileSize, const.tileSize))
 
+    generador.dibujar_laberinto(ventana, const.tileSize,const.COLORES_LABERINTO)
 
-    deltax=0
-    delta_y=0
+    # hago que el movimiento de mi personaje sea en 60fps
+    reloj.tick(const.FPS)
 
-    if moveLeft == True:
-        deltax=-5
-    if moveRight == True:
-        deltax=5
-    if moveDown == True:
-        delta_y=5
-    if moveUp == True:
-        delta_y=-5
-
-    laberinto_actual = generador.get_maze()
-
-    for trampa in trampas:
-        trampa.dibujar(ventana)
-
-        # Verificar colisiones jugador-trampas
-    for trampa in trampas:
-        if jugador.shape.colliderect(trampa.forma):
-            print("¡Has caído en una trampa!")
-
-    for tesoro in tesoros:
-        tesoro.dibujar(ventana)
-
-    for tesoro in tesoros:
-        if jugador.shape.colliderect(tesoro.forma):
-            print("Has encontrado un tesoro!")
-
-
-    if moveLeft:
-        jugador.mover_tile(-1, 0, laberinto_actual,salida)
-    elif moveRight:
-        jugador.mover_tile(1, 0, laberinto_actual,salida)
-    elif moveUp:
-        jugador.mover_tile(0, -1, laberinto_actual,salida)
-    elif moveDown:
-        jugador.mover_tile(0, 1, laberinto_actual,salida)
-
-
-
-    jugador_celda_x = jugador.shape.x // constantes.tileSize
-    jugador_celda_y = jugador.shape.y // constantes.tileSize
-
-    if verificar_salida(jugador.shape.x, jugador.shape.y, salida, constantes.tileSize):
-        print("🎉 ¡Felicidades! Ganaste el juego")
-
-    sistema_iluminacion.actualizar_iluminacion((jugador.shape.x, jugador.shape.y))
-    ventana.fill(COLORES_LABERINTO['PARED'])
-
-    sistema_iluminacion.dibujar_laberinto_iluminado(
-        ventana,
-        laberinto_actual,
-        (entrada[1], entrada[0]),  # (columna, fila) ← CORREGIDO
-        (salida[1], salida[0])  # (columna, fila) ← CORREGIDO
-    )
-
-
-
-    sistema_iluminacion.dibujar_entidades_iluminadas(ventana, trampas,tesoros)
-
-    # APLICAR EFECTO DE OSCURIDAD
-    sistema_iluminacion.dibujar_overlay_oscuridad(ventana)
-
-
-
-
-
-
-
-        # dibujo al jugador
     jugador.dibujar(ventana)
+    jugador.dibujar_vidas(ventana,fullheart,voidheart)
+    jugador.dibujar_energia(ventana, fullenergy, voidenergy)
+
+    if mostrar_inventario:
+        jugador.inventario.dibujar(ventana, 400, 50)
+
+    # Mostrar puntos en pantalla
+    fuente = pygame.font.Font(None, 24)
+    puntos_texto = fuente.render(f"Puntos: {jugador.puntos}", True, (255, 255, 0))
+    ventana.blit(puntos_texto, (10, 590))
+
+    if not jugador.esta_vivo():
+        print("¡Game Over!")
+        # Aquí puedes reiniciar el juego o mostrar pantalla de game over
+        jugador.resetear_vidas()
+        nombre = pedir_nombre(ventana)
+        tiempo_total=time.time()-inicio
+        guardar_ranking(nombre, jugador.puntos, tiempo_total, contador_salida)
+        mostrar_rankings(ventana)
 
 
-
+        break
+    trampas = generador.get_trampas()
+    tesoros = generador.get_tesoros()
+    llave = generador.get_llave()
+    salida = generador.get_exit_pos()
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             run = False
         elif event.type == pygame.KEYDOWN:
-            laberinto_actual = generador.get_maze()
+
+
 
             if event.key == pygame.K_a:
-                jugador.mover_tile(-1, 0, laberinto_actual,salida)
+                if jugador.mover_tile(-1, 0, generador, salida,trampas,tesoros,llave):
+                    celda_x = jugador.shape.x // const.tileSize
+                    celda_y = jugador.shape.y // const.tileSize
+                    generador.marcar_camino(celda_x, celda_y)
             elif event.key == pygame.K_d:
-                jugador.mover_tile(1, 0, laberinto_actual,salida)
+                if jugador.mover_tile(1, 0, generador, salida,trampas,tesoros,llave):
+                    celda_x = jugador.shape.x // const.tileSize
+                    celda_y = jugador.shape.y // const.tileSize
+                    generador.marcar_camino(celda_x, celda_y)
             elif event.key == pygame.K_w:
-                jugador.mover_tile(0, -1, laberinto_actual,salida)
+                if jugador.mover_tile(0, -1, generador, salida,trampas,tesoros, llave):
+                    celda_x = jugador.shape.x // const.tileSize
+                    celda_y = jugador.shape.y // const.tileSize
+                    generador.marcar_camino(celda_x, celda_y)
             elif event.key == pygame.K_s:
-                jugador.mover_tile(0, 1, laberinto_actual,salida)
+                if jugador.mover_tile(0, 1, generador, salida,trampas,tesoros, llave):
+                    celda_x = jugador.shape.x // const.tileSize
+                    celda_y = jugador.shape.y // const.tileSize
+                    generador.marcar_camino(celda_x, celda_y)
+            elif event.key == pygame.K_i:
+                mostrar_inventario = not mostrar_inventario
+            elif event.key == pygame.K_ESCAPE:
+                manager.mostrar_menu_pausa(ventana, jugador, contador_salida,generador)
 
             # Permitir movimiento inmediatamente después
             jugador.permitir_movimiento()
 
+    if verificar_salida(jugador, salida, const.tileSize) and not nivel_transicion:
+        print("🎉 ¡Felicidades! Pasaste al siguiente nivel!")
+        contador_salida += 1
+        print(f"Nivel actual: {contador_salida}")
+
+        nivel_transicion = True
+
+        generador.next_level()
+
+        jugador.inventario.llaves = 0
+        jugador.inventario.items = [item for item in jugador.inventario.items if item[0] != "Llave"]
+
+        salida=generador.get_exit_pos()
+        llave=generador.get_llave()
+        trampas=generador.get_trampas()
+        tesoros=generador.get_tesoros()
+
+
+        entrada = generador.get_entry_pos()
+        jugador.shape.x = entrada[1] * const.tileSize
+        jugador.shape.y = entrada[0] * const.tileSize
+        jugador.inventario.items = [
+            item for item in jugador.inventario.items
+            if item[0] not in [t.nombre for t in tesoros]
+        ]
+        # Sincronizar atributo rápido para verificar salida
+        jugador.llaves = jugador.inventario.llaves
+
+        if contador_salida>=3:
+            print("Haz ganado el juego")
+            nombre = pedir_nombre(ventana)
+            tiempo_total = time.time() - inicio
+            guardar_ranking(nombre, jugador.puntos, tiempo_total, contador_salida)
+            mostrar_rankings(ventana)
+            break
+
+
+    keys = pygame.key.get_pressed()
+    if any([keys[pygame.K_w], keys[pygame.K_a], keys[pygame.K_s], keys[pygame.K_d]]):
+        nivel_transicion = False
+
     pygame.display.update()
+
 pygame.quit()
-
-
