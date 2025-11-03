@@ -23,11 +23,11 @@ public class SudokuGame
     {
         clues = difficulty.ToLower() switch
         {
-            "muy facil" => 78,
-            "facil" => 78,
-            "medio" => 78,
-            "dificil"=>78,
-            "muy dificil"=>78,
+            "muy facil" => 44,
+            "facil" => 35,
+            "medio" => 31,
+            "dificil"=>24,
+            "muy dificil"=>17,
             _ => 44
         };
     }
@@ -48,7 +48,7 @@ public class SudokuGame
             Console.WriteLine("Presiona cualquier tecla para continuar...");
             Console.ReadKey();
             
-            vida = 3;
+            vida = 5;
         }
     }
 
@@ -269,8 +269,7 @@ public class sudoku
             Console.WriteLine("Bienvenido a la dificultad MUY FACIL");
             generartablero(tablerojugador);
             Console.WriteLine();
-            generartablero(juego.Solution); // Mostrar la solución para depuración
-
+           
             if (TableroCompleto(tablerojugador))
             {
                 if (juego.validarsolucion(tablerojugador))
@@ -287,7 +286,7 @@ public class sudoku
                     juego.generarsudoku();
                     tablerojugador = (int[,])juego.Grid.Clone();
 
-                    if (ganado == 2)
+                    if (ganado == 5)
                     {
                         
                         Console.WriteLine("¡Has alcanzado el nivel de dificultad FACIL!");
@@ -300,7 +299,7 @@ public class sudoku
                         Console.ReadKey();
 
                     }
-                    else if (ganado == 4)
+                    else if (ganado == 10)
                     {
                         
                         Console.WriteLine("¡Has alcanzado el nivel de dificultad MEDIO!");
@@ -311,7 +310,7 @@ public class sudoku
                         Console.WriteLine("Presiona cualquier tecla para continuar");
                         Console.ReadKey();
                     }
-                    else if (ganado == 6)
+                    else if (ganado == 15)
                     {
                         
                         Console.WriteLine("¡Has alcanzado el nivel de dificultad DIFICIL!");
@@ -322,7 +321,7 @@ public class sudoku
                         Console.WriteLine("Presiona cualquier tecla para continuar");
                         Console.ReadKey();
                     }
-                    else if (ganado == 8)
+                    else if (ganado == 20)
                     {
                         
                         Console.WriteLine("¡Has alcanzado el nivel de dificultad MUY DIFICIL!");
@@ -333,7 +332,7 @@ public class sudoku
                         Console.WriteLine("Presiona cualquier tecla para continuar");
                         Console.ReadKey();
                     }
-                    else if (ganado == 10)
+                    else if (ganado == 25)
                     {
 
                         Console.WriteLine("¡Has completado todos los niveles! ¡Felicidades!");
