@@ -1,13 +1,12 @@
 
 let board, scoreBoard, startButton, gameOverSign;
-const boardSize = 10;
+const boardSize = 20;
 const gameSpeed=100;
 
 /*posicion exacta del nodo de la serpiente*/
 class SnakeNode{
-    constructor(row, col){
-        this.row=row;
-        this.col=col;
+    constructor(coords){
+        this.value=coords;
         this.next=null;
     }
 }
@@ -19,14 +18,50 @@ class Snake{
         this.tail=null; /*cola*/
         this.length=0; /*longitud*/
     }
+    addNode(coords){
+        const newNode=new SnakeNode(coords); /*declaro un nodo nuevo*/
+        if(!this.head){
+            this.head=this.tail=newNode;
+        }else{
+            newNode.next=this.head;
+            this.head=newNode;
+        }
+        this.length++;
+    }
+    removeTail(){
+        if(!this.head) return;
+        if(this.head===this.tail){
+            this.head=this.tail=null;
+            this.length=0;
+            return;
+        }
+        
+        let currentNode=this.head;
+        while(currentNode.next!==this.tail){
+            currentNode=currentNode.next;
+        }
+        currentNode.next=null;
+        this.tail=currentNode;
+        this.length--;
+    }
+
+    getPositions(){
+        const positions=[];
+        let currentNode=this.head;
+        while(currentNode){
+            positions.push(currentNode.value);
+            currentNode=currentNode.next;
+        }
+        return positions;
+    }
     
 }
 
 
 
 const directions = {
-    ArrowUp: -10,
-    ArrowDown: 10,
+    ArrowUp: -20,
+    ArrowDown: 20,
     ArrowLeft: -1,
     ArrowRight: 1,
 };
@@ -34,7 +69,8 @@ const directions = {
 const SquareTypes = {
 emptySquare: 0,
 foodSquare: 2,
-snakeSquare: 1
+snakeSquare: 1,
+trapSquare: 3,
 };
 
 let snake;
@@ -48,7 +84,7 @@ const createBoard = () => {
 
     boardSquares.forEach((row, rowIndex) => {
         row.forEach((column, columnIndex) => {
-            const squareValue=`${rowIndex}${columnIndex}`;
+            const squareValue=`${rowIndex}-${columnIndex}`;
             const squareElement=document.createElement('div');
             squareElement.setAttribute('class','square emptySquare');
             squareElement.setAttribute('id',squareValue);
@@ -59,8 +95,23 @@ const createBoard = () => {
     })
 }
 
+const drawSnake = () => {
+    document.querySelectorAll('.snakeSquare').forEach(square => {
+        square.classList.remove('snakeSquare');
+        
+    });
+    const snakePositions=snake.getPositions();
+    snakePositions.forEach(position => {
+        const squareElement=document.getElementById(position);
+        if(squareElement){
+            squareElement.classList.add('snakeSquare');
+        }
+    });
+}
+
 const setGame = () => {
-    snake = ['00','01','02','03'];
+    snake = new Snake();
+    ['0-0','0-1','0-2'].forEach(pos => snake.addNode(pos));
     score=snake.length;
     direction='ArrowRight';
     boardSquares = Array.from(Array(boardSize), () => new Array(boardSize).fill(SquareTypes.emptySquare));
@@ -68,11 +119,178 @@ const setGame = () => {
     board.innerHTML = '';
     emptySquares = [];
     createBoard();
+    
+    
+}
+
+updateScore = () => {
+    scoreBoard.innerText = score;
+}
+
+createRandomFood = () => {
+const randomEmptySquare= emptySquares[Math.floor(Math.random() * emptySquares.length)];
+drawSquare(randomEmptySquare, 'foodSquare');
+}
+
+createRandomTrap = (numberOfTraps) => {
+    const availableSquares = emptySquares.filter(square => {
+        const [row, col] = square.split('-').map(Number);
+        return boardSquares[row][col] !== SquareTypes.foodSquare;
+    });
+
+    
+    
+    if (availableSquares.length === 0) return;
+    for (let i = 0; i < numberOfTraps; i++) {
+        const randomIndex = Math.floor(Math.random() * availableSquares.length);
+        const randomSquare = availableSquares[randomIndex];
+        drawSquare(randomSquare, 'trapSquare');
+        availableSquares.splice(randomIndex, 1);
+    }
+    
+}
+    
+
+
+const setDirection = newDirection => {
+    direction = newDirection;
+}
+
+const moveSnake = () => {
+   const headPosition = snake.head.value;
+    const [row, col] = headPosition.split('-').map(Number);
+    
+    let newRow = row;
+    let newCol = col;
+    
+    switch(direction) {
+        case 'ArrowUp':
+            newRow = (row - 1 )
+            break;
+        case 'ArrowDown':
+            newRow = (row + 1)
+            break;
+        case 'ArrowLeft':
+            newCol = (col - 1)
+            break;
+        case 'ArrowRight':
+            newCol = (col + 1) 
+            break;
+    }
+    if (newRow < 0 || newRow >= boardSize || newCol < 0 || newCol >= boardSize) {
+        gameOver();
+        return;
+    }
+    const newPosition = `${newRow}-${newCol}`;
+    
+    // Verificar colisiones
+    if (checkCollision(newPosition)) {
+        gameOver();
+        return;
+    }
+    
+    const ateFood = boardSquares[newRow][newCol] === SquareTypes.foodSquare;
+    const hitTrap = boardSquares[newRow][newCol] === SquareTypes.trapSquare;
+    
+    // Mover la serpiente
+    snake.addNode(newPosition);
+    
+    if (ateFood) {
+        
+        score = snake.length;
+        updateScore();
+        createRandomFood();
+    } else {
+        
+        const tailPosition = snake.tail.value;
+        snake.removeTail();
+        drawSquare(tailPosition, 'emptySquare');
+    }
+
+    if (hitTrap) {
+        const tailPosition = snake.tail.value;
+        snake.removeTail();
+        drawSquare(tailPosition, 'emptySquare');
+        score = snake.length;
+        updateScore();
+        createRandomTrap(1);
+    }
+
+    if(score <= 0){
+        gameOver();
+        return;
+    }
+
+    
+    
+    drawSquare(newPosition, 'snakeSquare');
+    drawSnake();
+}
+
+const checkCollision = (position) => {
+    let currentNode = snake.head.next; 
+    
+    while (currentNode) {
+        if (currentNode.value === position) {
+            
+            return true; 
+        }
+        currentNode = currentNode.next;
+    }
+    return false; 
+}
+
+const gameOver = () => {
+    clearInterval(moveInterval);
+    gameOverSign.style.display = 'block';
+    startButton.disabled = false;
+    document.removeEventListener('keydown', changeDirection);
+}
+
+const changeDirection = event => {
+    switch(event.code){
+        case 'ArrowUp':
+            direction !== 'ArrowDown' && setDirection(event.code);
+            break;
+        case 'ArrowDown':
+            direction !== 'ArrowUp' && setDirection(event.code);
+            break;
+        case 'ArrowLeft':
+            direction !== 'ArrowRight' && setDirection(event.code);
+            break;
+        case 'ArrowRight':
+            direction !== 'ArrowLeft' && setDirection(event.code);
+            break;
+    }
 }
 
 const startGame = () => {
     setGame();
+    startButton.disabled = true;
+    gameOverSign.style.display = 'none';
+    drawSnake();
+    updateScore();
+    createRandomFood();
+    createRandomTrap(3);
+    document.addEventListener('keydown', changeDirection);
+    moveInterval = setInterval(moveSnake, gameSpeed);
     
+    
+}
+
+const drawSquare = (square, type) => {
+    const [row, col] = square.split('-').map(Number);
+    boardSquares[row][col] = SquareTypes[type];
+    const squareElement = document.getElementById(square);
+    squareElement.setAttribute('class', `square ${type}`);
+    if (type === 'emptySquare') {
+        emptySquares.push(square);
+    } else {
+        if(emptySquares.indexOf(square) !== -1){
+            emptySquares.splice(emptySquares.indexOf(square), 1);
+        }
+
+}
 }
 
 

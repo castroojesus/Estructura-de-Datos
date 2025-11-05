@@ -1,13 +1,32 @@
 *{
     font-family: "Share Tech Mono", monospace;
 }
+
+html{
+    overflow: hidden;
+}
+body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    margin: 0;
+    background-color: #111;
+    overflow: hidden;
+}
+
 #board, .boardInfo{
-    max-width: 500px;
+    max-width: 400px;
 }
 
 #board{
+    
+    width: 400px;
+    height: 400px;
     display: grid;
-    grid-template-columns: repeat(10, 1fr);
+    grid-template-columns: repeat(20, 1fr);
+    
 }
 
 #start, .boardInfo{
@@ -16,13 +35,23 @@
 
 #gameOver{
     display: none;
+    
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 20px;
+    position: absolute;
+
+    border-radius: 10px;
 }
 
 .boardInfo{
     display: flex;
-
-    justify-content: space-between;
-    margin-top: 10px;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 20px;
+    flex-direction: column;
+    width: 400px;
 }
 
 #start{
@@ -30,9 +59,15 @@
     background-color: rgb(255, 0, 0);
     color: white;
     border: none;
+    border-radius: 20px;
+    padding: 10px 10px;
+    cursor: pointer;
    
 }
 
+#scoreBoard, .boardInfo{
+    color:aqua;
+}
 
 
 #scoreBoard{
@@ -41,6 +76,7 @@
 
 .square{
     aspect-ratio: 1;
+    
 }
 
 .emptySquare{
@@ -53,4 +89,8 @@
 
 .snakeSquare{
     background-color: rgb(0, 204, 0);
+}
+
+.trapSquare{
+    background-color: rgb(204,0,0);
 }
