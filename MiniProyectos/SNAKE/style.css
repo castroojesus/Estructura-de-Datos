@@ -74,6 +74,10 @@ body {
     display: inline-flex;
 }
 
+#timeBoard{
+    display: inline-flex;
+}
+
 .square{
     aspect-ratio: 1;
     
@@ -93,4 +97,55 @@ body {
 
 .trapSquare{
     background-color: rgb(204,0,0);
+}
+
+#ranking {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.95);
+    color: white;
+    padding: 20px;
+    border-radius: 10px;
+    border: 2px solid #0ff;
+    z-index: 1000;
+    max-width: 400px;
+    width: 90%;
+}
+
+.ranking-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px;
+    margin: 5px 0;
+    background: #222;
+    border-radius: 5px;
+}
+
+.ranking-item:nth-child(1) {
+    background: linear-gradient(135deg, #ffd700, #ffed4e);
+    color: #000;
+    font-weight: bold;
+}
+
+.ranking-item:nth-child(2) {
+    background: linear-gradient(135deg, #c0c0c0, #e0e0e0);
+    color: #000;
+}
+
+.ranking-item:nth-child(3) {
+    background: linear-gradient(135deg, #cd7f32, #e89c5e);
+    color: #000;
+}
+
+#closeRanking {
+    background: #f00;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 10px;
 }

@@ -3,6 +3,59 @@ let board, scoreBoard, startButton, gameOverSign;
 const boardSize = 20;
 const gameSpeed=100;
 
+let tiempoFinal;
+let tiempoInicio;
+let timeInterval;
+
+let ranking = JSON.parse(localStorage.getItem('snakeRanking')) || [];
+
+const showRanking = () => {
+    const tiempoTotal = ((tiempoFinal - tiempoInicio) / 1000).toFixed(2);
+    
+    const name = prompt(`¡Game Over!\nPuntuación: ${score}\nTiempo: ${tiempoTotal}s\n\nIngresa tu nombre:`) || 'Anónimo';
+    
+    // Guardar en ranking
+    ranking.push({
+        name: name,
+        score: score,
+        time: parseFloat(tiempoTotal),
+        date: new Date().toLocaleDateString()
+    });
+    
+    // Ordenar ranking
+    ranking.sort((a, b) => {
+        if (b.score !== a.score) return b.score - a.score;
+        return b.time - a.time;
+    });
+    
+    ranking = ranking.slice(0, 5);
+    localStorage.setItem('snakeRanking', JSON.stringify(ranking));
+    
+    // Mostrar ranking en el div
+    const rankingHTML = `
+        <h3 style="text-align:center; color:#0ff; margin-bottom:15px;">🏆 RANKING 🏆</h3>
+        <div style="max-height:300px; overflow-y:auto;">
+            ${ranking.map((player, index) => `
+                <div class="ranking-item">
+                    <span>${index + 1}. ${player.name}</span>
+                    <span>${player.score} pts - ${player.time}s</span>
+                </div>
+            `).join('')}
+            ${ranking.length === 0 ? '<div style="text-align:center; color:#888;">No hay datos</div>' : ''}
+        </div>
+        <button id="closeRanking">Cerrar</button>
+    `;
+    
+    const rankingDiv = document.getElementById('ranking');
+    rankingDiv.innerHTML = rankingHTML;
+    rankingDiv.style.display = 'block';
+    
+    // Evento para cerrar
+    document.getElementById('closeRanking').addEventListener('click', () => {
+        rankingDiv.style.display = 'none';
+    });
+};
+
 /*posicion exacta del nodo de la serpiente*/
 class SnakeNode{
     constructor(coords){
@@ -127,6 +180,11 @@ updateScore = () => {
     scoreBoard.innerText = score;
 }
 
+updateTime = () => {
+    const tiempoActual = performance.now();
+    const tiempoTranscurrido = ((tiempoActual - tiempoInicio) / 1000).toFixed(2);
+    time.innerText = tiempoTranscurrido + "s";
+}
 createRandomFood = () => {
 const randomEmptySquare= emptySquares[Math.floor(Math.random() * emptySquares.length)];
 drawSquare(randomEmptySquare, 'foodSquare');
@@ -207,16 +265,19 @@ const moveSnake = () => {
         drawSquare(tailPosition, 'emptySquare');
     }
 
+    let activateTrap;
+
     if (hitTrap) {
         const tailPosition = snake.tail.value;
         snake.removeTail();
         drawSquare(tailPosition, 'emptySquare');
         score = snake.length;
+        activateTrap++;
         updateScore();
         createRandomTrap(1);
     }
 
-    if(score <= 0){
+    if(score <= 0 || activateTrap >= 5){
         gameOver();
         return;
     }
@@ -240,11 +301,22 @@ const checkCollision = (position) => {
     return false; 
 }
 
+
+
 const gameOver = () => {
     clearInterval(moveInterval);
+    clearInterval(timeInterval); 
+    tiempoFinal = performance.now();
+    
+    
+    const tiempoTotal = ((tiempoFinal - tiempoInicio) / 1000).toFixed(2);
+    time.innerText = tiempoTotal + "s";
     gameOverSign.style.display = 'block';
     startButton.disabled = false;
     document.removeEventListener('keydown', changeDirection);
+
+    setTimeout(showRanking, 500);
+    
 }
 
 const changeDirection = event => {
@@ -264,16 +336,21 @@ const changeDirection = event => {
     }
 }
 
+
 const startGame = () => {
+    tiempoInicio = performance.now();
+    activateTrap = 0;
     setGame();
     startButton.disabled = true;
     gameOverSign.style.display = 'none';
     drawSnake();
     updateScore();
+    updateTime();
     createRandomFood();
     createRandomTrap(3);
     document.addEventListener('keydown', changeDirection);
     moveInterval = setInterval(moveSnake, gameSpeed);
+    timeInterval = setInterval(updateTime, 100);
     
     
 }
@@ -299,6 +376,7 @@ document.addEventListener('DOMContentLoaded', () => {
     scoreBoard = document.getElementById('scoreBoard');
     startButton = document.getElementById('start');
     gameOverSign = document.getElementById('gameOver');
+    time =document.getElementById('timeBoard');
 
     startButton.addEventListener('click', startGame);
 });
