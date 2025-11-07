@@ -1,7 +1,8 @@
-
 let board, scoreBoard, startButton, gameOverSign;
 const boardSize = 20;
 const gameSpeed=100;
+
+
 
 let tiempoFinal;
 let tiempoInicio;
@@ -132,6 +133,7 @@ let direction;
 let boardSquares;
 let emptySquares;
 let moveInterval;
+let speedTimer = null;
 
 const createBoard = () => {
 
@@ -208,15 +210,42 @@ createRandomTrap = (numberOfTraps) => {
     
 }
     
-
+const minSpeed = 50;           // velocidad límite (ms)
+const speedStep = 50;          // cuánto reducimos (ms) cada 30s
 
 const setDirection = newDirection => {
     direction = newDirection;
 }
 
+function increaseSpeed() {
+    // reducimos speedOverTime manteniéndolo >= minSpeed
+    if (speedOverTime > minSpeed) {
+        speedOverTime = Math.max(minSpeed, speedOverTime - speedStep);
+        // reiniciamos el intervalo de movimiento con la nueva velocidad
+        if (moveInterval) {
+            clearInterval(moveInterval);
+            moveInterval = setInterval(moveSnake, speedOverTime);
+        }
+        console.log('Aumenta velocidad, nuevo intervalo:', speedOverTime);
+    } else {
+        // Si ya llegamos al mínimo, detenemos el timer de aumento
+        if (speedTimer) {
+            clearInterval(speedTimer);
+            speedTimer = null;
+        }
+    }
+}
+
+
+
+
+
+
 const moveSnake = () => {
    const headPosition = snake.head.value;
     const [row, col] = headPosition.split('-').map(Number);
+
+    
     
     let newRow = row;
     let newCol = col;
@@ -304,8 +333,9 @@ const checkCollision = (position) => {
 
 
 const gameOver = () => {
-    clearInterval(moveInterval);
-    clearInterval(timeInterval); 
+    if (moveInterval) { clearInterval(moveInterval); moveInterval = null; }
+    if (speedTimer) { clearInterval(speedTimer); speedTimer = null; }
+    if (timeInterval) { clearInterval(timeInterval); timeInterval = null; }
     tiempoFinal = performance.now();
     
     
@@ -338,6 +368,9 @@ const changeDirection = event => {
 
 
 const startGame = () => {
+    if (moveInterval) { clearInterval(moveInterval); moveInterval = null; }
+    if (speedTimer) { clearInterval(speedTimer); speedTimer = null; }
+    speedOverTime = gameSpeed * 2; // Reiniciar velocidad al comenzar
     tiempoInicio = performance.now();
     activateTrap = 0;
     setGame();
@@ -349,7 +382,8 @@ const startGame = () => {
     createRandomFood();
     createRandomTrap(3);
     document.addEventListener('keydown', changeDirection);
-    moveInterval = setInterval(moveSnake, gameSpeed);
+    speedTimer = setInterval(increaseSpeed, 10000); // Aumentar velocidad cada 30 segundos
+    moveInterval = setInterval(moveSnake, speedOverTime);
     timeInterval = setInterval(updateTime, 100);
     
     
