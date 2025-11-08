@@ -1,6 +1,9 @@
 let board, scoreBoard, startButton, gameOverSign;
 const boardSize = 20;
 const gameSpeed=100;
+let speedOverTime; // Velocidad inicial
+let initialLength = 0; // tamaño original de la serpiente
+let lastMilestone = 0; // último múltiplo de 15 procesado
 
 
 
@@ -68,8 +71,8 @@ class SnakeNode{
 /*serpiente como lista enlazada*/
 class Snake{
     constructor(){
-        this.head=null; /*cabeza*/
-        this.tail=null; /*cola*/
+        this.head; /*cabeza*/
+        this.tail; /*cola*/
         this.length=0; /*longitud*/
     }
     addNode(coords){
@@ -166,8 +169,10 @@ const drawSnake = () => {
 
 const setGame = () => {
     snake = new Snake();
-    ['0-0','0-1','0-2'].forEach(pos => snake.addNode(pos));
-    score=snake.length;
+    ['0-0','0-1','0-2','0-3','0-5'].forEach(pos => snake.addNode(pos));
+    score=5;
+    // Guardamos el tamaño inicial de la serpiente para poder restaurarlo cada 15 puntos
+    initialLength = snake.length;
     direction='ArrowRight';
     boardSquares = Array.from(Array(boardSize), () => new Array(boardSize).fill(SquareTypes.emptySquare));
     console.log(boardSquares);
@@ -218,21 +223,34 @@ const setDirection = newDirection => {
 }
 
 function increaseSpeed() {
-    // reducimos speedOverTime manteniéndolo >= minSpeed
-    if (speedOverTime > minSpeed) {
-        speedOverTime = Math.max(minSpeed, speedOverTime - speedStep);
-        // reiniciamos el intervalo de movimiento con la nueva velocidad
-        if (moveInterval) {
-            clearInterval(moveInterval);
-            moveInterval = setInterval(moveSnake, speedOverTime);
+    // Solo actuamos cuando alcanzamos un nuevo múltiplo de 15
+    if (score > 0 && score % 15 === 0 && score !== lastMilestone) {
+        // Reducir velocidad respetando el mínimo
+        if (speedOverTime > minSpeed) {
+            speedOverTime = Math.max(minSpeed, speedOverTime - speedStep);
+            if (moveInterval) {
+                clearInterval(moveInterval);
+                moveInterval = setInterval(moveSnake, speedOverTime);
+            }
+            console.log('Aumenta velocidad, nuevo intervalo:', speedOverTime);
         }
-        console.log('Aumenta velocidad, nuevo intervalo:', speedOverTime);
-    } else {
-        // Si ya llegamos al mínimo, detenemos el timer de aumento
-        if (speedTimer) {
-            clearInterval(speedTimer);
-            speedTimer = null;
+
+        // Reiniciar el tamaño de la serpiente pero MANTENER EL SCORE
+        const currentScore = score; // Guardamos el score actual
+        
+        // Restaurar el tamaño original de la serpiente (eliminar nodos de la cola)
+        while (snake.length > initialLength) {
+            const tailPos = snake.tail && snake.tail.value;
+            snake.removeTail();
+            if (tailPos) drawSquare(tailPos, 'emptySquare');
         }
+        
+        // RESTAURAR EL SCORE ORIGINAL (no usar snake.length)
+        score = currentScore;
+        updateScore();
+
+        // Marcar este múltiplo como procesado para no repetir la acción
+        lastMilestone = score;
     }
 }
 
@@ -252,22 +270,19 @@ const moveSnake = () => {
     
     switch(direction) {
         case 'ArrowUp':
-            newRow = (row - 1 )
+            newRow = (row - 1 +boardSize) %boardSize
             break;
         case 'ArrowDown':
-            newRow = (row + 1)
+            newRow = (row + 1) %boardSize
             break;
         case 'ArrowLeft':
-            newCol = (col - 1)
+            newCol = (col - 1+boardSize) %boardSize
             break;
         case 'ArrowRight':
-            newCol = (col + 1) 
+            newCol = (col + 1) %boardSize
             break;
     }
-    if (newRow < 0 || newRow >= boardSize || newCol < 0 || newCol >= boardSize) {
-        gameOver();
-        return;
-    }
+    
     const newPosition = `${newRow}-${newCol}`;
     
     // Verificar colisiones
@@ -284,9 +299,10 @@ const moveSnake = () => {
     
     if (ateFood) {
         
-        score = snake.length;
+        score ++;
         updateScore();
         createRandomFood();
+        increaseSpeed(); // Aumentar velocidad cada 30 segundos
     } else {
         
         const tailPosition = snake.tail.value;
@@ -306,7 +322,7 @@ const moveSnake = () => {
         createRandomTrap(1);
     }
 
-    if(score <= 0 || activateTrap >= 5){
+    if(score <= 0){
         gameOver();
         return;
     }
@@ -382,7 +398,7 @@ const startGame = () => {
     createRandomFood();
     createRandomTrap(3);
     document.addEventListener('keydown', changeDirection);
-    speedTimer = setInterval(increaseSpeed, 10000); // Aumentar velocidad cada 30 segundos
+    
     moveInterval = setInterval(moveSnake, speedOverTime);
     timeInterval = setInterval(updateTime, 100);
     
