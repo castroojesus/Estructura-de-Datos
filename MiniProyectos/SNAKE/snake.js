@@ -1,9 +1,9 @@
 let board, scoreBoard, startButton, gameOverSign;
 const boardSize = 20;
 const gameSpeed=100;
-let speedOverTime; // Velocidad inicial
-let initialLength = 0; // tamaño original de la serpiente
-let lastMilestone = 0; // último múltiplo de 15 procesado
+let speedOverTime; 
+let initialLength = 0; 
+let lastMilestone = 0; 
 
 
 
@@ -18,7 +18,7 @@ const showRanking = () => {
     
     const name = prompt(`¡Game Over!\nPuntuación: ${score}\nTiempo: ${tiempoTotal}s\n\nIngresa tu nombre:`) || 'Anónimo';
     
-    // Guardar en ranking
+   
     ranking.push({
         name: name,
         score: score,
@@ -26,7 +26,7 @@ const showRanking = () => {
         date: new Date().toLocaleDateString()
     });
     
-    // Ordenar ranking
+   
     ranking.sort((a, b) => {
         if (b.score !== a.score) return b.score - a.score;
         return b.time - a.time;
@@ -35,7 +35,7 @@ const showRanking = () => {
     ranking = ranking.slice(0, 5);
     localStorage.setItem('snakeRanking', JSON.stringify(ranking));
     
-    // Mostrar ranking en el div
+   
     const rankingHTML = `
         <h3 style="text-align:center; color:#0ff; margin-bottom:15px;">🏆 RANKING 🏆</h3>
         <div style="max-height:300px; overflow-y:auto;">
@@ -54,7 +54,7 @@ const showRanking = () => {
     rankingDiv.innerHTML = rankingHTML;
     rankingDiv.style.display = 'block';
     
-    // Evento para cerrar
+    
     document.getElementById('closeRanking').addEventListener('click', () => {
         rankingDiv.style.display = 'none';
     });
@@ -171,7 +171,7 @@ const setGame = () => {
     snake = new Snake();
     ['0-0','0-1','0-2','0-3','0-5'].forEach(pos => snake.addNode(pos));
     score=5;
-    // Guardamos el tamaño inicial de la serpiente para poder restaurarlo cada 15 puntos
+    
     initialLength = snake.length;
     direction='ArrowRight';
     boardSquares = Array.from(Array(boardSize), () => new Array(boardSize).fill(SquareTypes.emptySquare));
@@ -215,17 +215,17 @@ createRandomTrap = (numberOfTraps) => {
     
 }
     
-const minSpeed = 50;           // velocidad límite (ms)
-const speedStep = 50;          // cuánto reducimos (ms) cada 30s
+const minSpeed = 50;          
+const speedStep = 50;          
 
 const setDirection = newDirection => {
     direction = newDirection;
 }
 
 function increaseSpeed() {
-    // Solo actuamos cuando alcanzamos un nuevo múltiplo de 15
+   
     if (score > 0 && score % 15 === 0 && score !== lastMilestone) {
-        // Reducir velocidad respetando el mínimo
+       
         if (speedOverTime > minSpeed) {
             speedOverTime = Math.max(minSpeed, speedOverTime - speedStep);
             if (moveInterval) {
@@ -235,21 +235,21 @@ function increaseSpeed() {
             console.log('Aumenta velocidad, nuevo intervalo:', speedOverTime);
         }
 
-        // Reiniciar el tamaño de la serpiente pero MANTENER EL SCORE
-        const currentScore = score; // Guardamos el score actual
         
-        // Restaurar el tamaño original de la serpiente (eliminar nodos de la cola)
+        const currentScore = score; 
+        
+        
         while (snake.length > initialLength) {
             const tailPos = snake.tail && snake.tail.value;
             snake.removeTail();
             if (tailPos) drawSquare(tailPos, 'emptySquare');
         }
         
-        // RESTAURAR EL SCORE ORIGINAL (no usar snake.length)
+       
         score = currentScore;
         updateScore();
 
-        // Marcar este múltiplo como procesado para no repetir la acción
+        
         lastMilestone = score;
     }
 }
@@ -302,7 +302,7 @@ const moveSnake = () => {
         score ++;
         updateScore();
         createRandomFood();
-        increaseSpeed(); // Aumentar velocidad cada 30 segundos
+        increaseSpeed(); 
     } else {
         
         const tailPosition = snake.tail.value;
@@ -386,7 +386,7 @@ const changeDirection = event => {
 const startGame = () => {
     if (moveInterval) { clearInterval(moveInterval); moveInterval = null; }
     if (speedTimer) { clearInterval(speedTimer); speedTimer = null; }
-    speedOverTime = gameSpeed * 2; // Reiniciar velocidad al comenzar
+    speedOverTime = gameSpeed * 2; 
     tiempoInicio = performance.now();
     activateTrap = 0;
     setGame();
