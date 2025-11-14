@@ -64,7 +64,7 @@ const showRanking = () => {
 class SnakeNode{
     constructor(coords){
         this.value=coords;
-        this.next=null;
+        this.next;
     }
 }
 
@@ -169,7 +169,7 @@ const drawSnake = () => {
 
 const setGame = () => {
     snake = new Snake();
-    ['0-0','0-1','0-2','0-3','0-5'].forEach(pos => snake.addNode(pos));
+    ['0-0','0-1','0-2','0-3','0-4'].forEach(pos => snake.addNode(pos));
     score=5;
     
     initialLength = snake.length;
@@ -316,7 +316,7 @@ const moveSnake = () => {
         const tailPosition = snake.tail.value;
         snake.removeTail();
         drawSquare(tailPosition, 'emptySquare');
-        score = snake.length;
+        score --;
         activateTrap++;
         updateScore();
         createRandomTrap(1);

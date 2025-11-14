@@ -35,7 +35,7 @@ body {
 
 #gameOver{
     display: none;
-    
+    top:220px;
     background: rgba(0, 0, 0, 0.8);
     color: white;
     padding: 20px;
@@ -96,7 +96,7 @@ body {
 }
 
 .trapSquare{
-    background-color: rgb(204,0,0);
+    background-color: rgb(37, 22, 40);
 }
 
 #ranking {
