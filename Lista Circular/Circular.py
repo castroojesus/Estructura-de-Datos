@@ -7,7 +7,7 @@ class CircularLinkedList:
     def __init__(self):
         self.last = None
 
-    def insert_begin(self):
+    def insertbegin(self):
         value = int(input("Ingrese un valor: "))
         new_node = Node(value)
         
@@ -18,7 +18,7 @@ class CircularLinkedList:
             new_node.next = self.last.next
             self.last.next = new_node
 
-    def insert_end(self):
+    def insertend(self):
         value = int(input("Ingrese un valor: "))
         new_node = Node(value)
         if self.last is None:
@@ -29,7 +29,7 @@ class CircularLinkedList:
             self.last.next = new_node
             self.last = new_node
 
-    def insert_random(self):
+    def insertrandom(self):
         value = int(input("Ingrese un valor: "))
         pos = int(input("Ingrese la posicion donde desea insertar: "))
         
@@ -58,7 +58,7 @@ class CircularLinkedList:
         if current == self.last:
             self.last = new_node
 
-    def delete_begin(self):
+    def deletebegin(self):
         if self.last is None:
             print("La lista esta vacia")
             return
@@ -69,7 +69,7 @@ class CircularLinkedList:
             self.last.next = temp.next
         
 
-    def delete_end(self):
+    def deleteend(self):
         if self.last is None:
             print("La lista esta vacia")
             return
@@ -84,7 +84,7 @@ class CircularLinkedList:
         self.last = temp
         print("Elemento eliminado desde el final")
 
-    def delete_random(self):
+    def deleterandom(self):
         if self.last is None:
             print("La lista esta vacia")
             return
@@ -156,7 +156,7 @@ def main():
                 case 2:
                     cll.insertend()
                 case 3:
-                    cll.randominsert()
+                    cll.insertrandom()
                 case 4:
                     cll.deletebegin()
                 case 5:

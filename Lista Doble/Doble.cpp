@@ -1,18 +1,17 @@
 #include <iostream>
 using namespace std;
-
 struct Node {
     int data;
     Node* next;
+    Node* prev;
 };
 
-class CircularLinkedList {
+class DoublyLinkedList {
 private:
-    Node* last;
-   
-public: 
-    CircularLinkedList() : last(nullptr) {}
-
+    Node* head;
+    Node* tail;
+public:
+    DoublyLinkedList() : head(nullptr), tail(nullptr) {}
     void insertbegin() {
         int value;
         cout << "Ingrese un valor: ";
@@ -20,18 +19,17 @@ public:
 
         Node* newNode = new Node();
         newNode->data = value;
-        
-        if (last == nullptr) {
-            last = newNode;
-            last->next = last;
+        newNode->next = head;
+        newNode->prev = nullptr;
+
+        if (head != nullptr) {
+            head->prev = newNode;
         } else {
-            
-            newNode->next=last->next;
-            
-            last->next = newNode;
+            tail = newNode; // Si la lista estaba vacía, el nuevo nodo es también la cola
         }
+        head = newNode;
     }
-    
+
     void insertend(){
         int value;
         cout << "Ingrese un valor: ";
@@ -39,19 +37,17 @@ public:
 
         Node* newNode = new Node();
         newNode->data = value;
-        if (last == nullptr) {
-            last = newNode;
-            last->next = last;
+        newNode->next = nullptr;
+        newNode->prev = tail;
+
+        if (tail != nullptr) {
+            tail->next = newNode;
         } else {
-            
-            newNode->next=last->next;
-            
-            last->next = newNode;
-            last=newNode;
+            head = newNode; 
         }
-        
+        tail = newNode;
     }
-    
+
     void insertrandom(){
         int value;
         int pos;
@@ -62,126 +58,134 @@ public:
 
         Node* newNode = new Node();
         newNode->data = value;
-        Node* actual=last->next;
-        if (last == nullptr) {
-            last = newNode;
-            last->next = last;
-        } else {
-            for (int i=0;i<pos-1;i++){
-                if (actual == last) {
-                    break; // Llegamos al final antes de la posición deseada, insertamos al final.
-                }
-                actual = actual->next;
-            }
-            newNode->next=actual->next;
-            
-            actual->next = newNode;
-            if (actual == last) {
-                last = newNode;
-            }
-        }
-    }
 
-    void deletebegin() {
-        if (last == nullptr) {
+        if (pos <= 0 || head == nullptr) {
+            insertbegin();
+            return;
+        }
+
+        Node* current = head;
+        for (int i = 0; i < pos - 1; i++) {
+            if (current->next == nullptr) {
+                insertend();
+                return;
+            }
+            current = current->next;
+        }
+
+        newNode->next = current->next;
+        newNode->prev = current;
+
+        if (current->next != nullptr) {
+            current->next->prev = newNode;
+        } else {
+            tail = newNode; 
+        }
+        current->next = newNode;
+        cout<< "Elemento insertado en la posicion " << pos << endl;
+    }
+    void deletebegin(){
+        if (head == nullptr) {
             cout << "La lista esta vacia" << endl;
             return;
         }
-        Node* temp = last->next;
-        if (last->next == last) {
-            last = nullptr;
+        Node* temp = head;
+        head = head->next;
+        if (head != nullptr) {
+            head->prev = nullptr;
         } else {
-            last->next = temp->next;
+            tail = nullptr; 
         }
         delete temp;
+        cout << "Elemento eliminado desde el inicio" << endl;
     }
-
-    void deleteend() {
-        if (last == nullptr) {
+    void deleteend(){
+        if (tail == nullptr) {
             cout << "La lista esta vacia" << endl;
             return;
         }
-        Node* temp = last->next;
-        if (last->next == last) {
-            delete last;
-            last = nullptr;
+        Node* temp = tail;
+        tail = tail->prev;
+        if (tail != nullptr) {
+            tail->next = nullptr;
         } else {
-            while (temp->next != last) {
-                temp = temp->next;
-            }
-            temp->next = last->next;
-            delete last;
-            last = temp;
-            cout<< "Elemento eliminado desde el final" << endl;
+            head = nullptr; 
         }
+        delete temp;
+        cout<< "Elemento eliminado desde el final" << endl;
     }
-
-    void deleteRandom() {
-        if (last == nullptr) {
+    void deleteRandom(){
+        if (head == nullptr) {
             cout << "La lista esta vacia" << endl;
             return;
         }
-        Node* current = last->next;
-        Node* previous = last;
         int pos;
         cout << "Ingresa la posicion: ";
         cin >> pos;
+
+        Node* current = head;
         for (int i = 0; i < pos; i++) {
-            if (current == last) {
+            if (current == nullptr) {
                 cout << "La posicion no existe" << endl;
                 return;
             }
-            previous = current;
             current = current->next;
         }
-        previous->next = current->next;
-        if (current == last) {
-            last = previous;
-        }
-        delete current;
-        cout << "Elemento eliminado desde la posicion " << pos << endl;
-    }
 
-    void search() {
-        if (last == nullptr) {
+        if (current->prev != nullptr) {
+            current->prev->next = current->next;
+        } else {
+            head = current->next; 
+        }
+
+        if (current->next != nullptr) {
+            current->next->prev = current->prev;
+        } else {
+            tail = current->prev; 
+        }
+
+        delete current;
+    }
+    void search(){
+        if (head == nullptr) {
             cout << "La lista esta vacia" << endl;
             return;
         }
         int value;
         cout << "Ingrese el valor a buscar: ";
         cin >> value;
-        Node* temp = last->next;
+
+        Node* temp = head;
         int pos = 0;
-        do {
+        while (temp != nullptr) {
             if (temp->data == value) {
                 cout << "Valor " << value << " encontrado en la posicion " << pos << endl;
                 return;
             }
             temp = temp->next;
             pos++;
-        } while (temp != last->next);
+        }
         cout << "Valor " << value << " no encontrado en la lista" << endl;
     }
 
+
     void display() {
-        if (last == nullptr) {
+        if (head == nullptr) {
             cout << "La lista esta vacia" << endl;
             return;
         }
-        Node* temp = last->next;
-        cout << "Lista Circular: ";
-        do {
-            cout << temp->data << "-> ";
+        Node* temp = head;
+        cout << "Lista Doble: ";
+        while (temp != nullptr) {
+            cout << temp->data << " <-> ";
             temp = temp->next;
-        } while (temp != last->next);
-        cout <<"inicio"<< endl;
+        }
+        cout << "NULL" << endl;
     }
-
-    
 };
 
 int main() {
-    CircularLinkedList cll;
+    DoublyLinkedList dll;
     int choice;
 
     do {
@@ -199,29 +203,29 @@ int main() {
 
         switch (choice) {
             case 1:
-                cll.insertbegin();
+                dll.insertbegin();
                 break;
             case 2:
-                cll.insertend();
+                dll.insertend();
                 break;
             case 3:
-                cll.insertrandom();
+                dll.insertrandom();
                 break;
             case 4:
-                cll.deletebegin();
+                dll.deletebegin();
                 break;
             case 5:
-                cll.deleteend();
+                dll.deleteend();
                 break;
             case 6:
-                cll.deleteRandom();
+                dll.deleteRandom();
                 break;
             case 7:
             
-                cll.search();
+                dll.search();
                 break;
             case 8:
-                cll.display();
+                dll.display();
                 break;
             case 9:
                 cout << "Saliendo..." << endl;
